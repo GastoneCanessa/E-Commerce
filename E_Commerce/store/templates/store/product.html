@@ -1,0 +1,14 @@
+{% extends 'store/main.html' %}
+{% load static %}
+{% block content %}
+ {% for i in object %}
+  <div class="row">
+     <div class="col-6" style="padding-top:100px;">
+  				<img class="thumbnail cover" style="height:300px;" src="{{i.imageURL}}">
+     </div>
+  			<div class="col-6" style="padding-top:100px;">
+  					<h5>{{i.description}}</h5>
+  		 </div>
+  </div>
+ {% endfor %}
+{% endblock content %}
