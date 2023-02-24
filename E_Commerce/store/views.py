@@ -2,25 +2,17 @@ from django.shortcuts import render
 from django.http import JsonResponse
 import json
 import datetime
-from .models import *
-from .utils import cookieCart, cartData, guestOrder
+from .models import Product, Order, OrderItem, ShippingAddress
+from .utils import cartData, guestOrder
 
-from django.views import generic
-from django.views.generic.detail import DetailView
-
-from django.shortcuts import HttpResponse
-import mimetypes
 
 def store(request):
-
 	data = cartData(request)
-
 	cartItems = data['cartItems']
-	order = data['order']
-	items = data['items']
-
+	# order = data['order']
+	# items = data['items']
 	products = Product.objects.all()
-	context = {'products':products, 'cartItems':cartItems}
+	context = {'products': products, 'cartItems': cartItems}
 	return render(request, 'store/store.html', context)
 
 
@@ -31,8 +23,9 @@ def cart(request):
 	order = data['order']
 	items = data['items']
 
-	context = {'items':items, 'order':order, 'cartItems':cartItems}
+	context = {'items': items, 'order': order, 'cartItems': cartItems}
 	return render(request, 'store/cart.html', context)
+
 
 def checkout(request):
 	data = cartData(request)
@@ -41,8 +34,9 @@ def checkout(request):
 	order = data['order']
 	items = data['items']
 
-	context = {'items':items, 'order':order, 'cartItems':cartItems}
+	context = {'items': items, 'order': order, 'cartItems': cartItems}
 	return render(request, 'store/checkout.html', context)
+
 
 def updateItem(request):
 	data = json.loads(request.body)
@@ -53,9 +47,13 @@ def updateItem(request):
 
 	customer = request.user.customer
 	product = Product.objects.get(id=productId)
-	order, created = Order.objects.get_or_create(customer=customer, complete=False)
+	order, created = Order.objects.get_or_create(
+		customer=customer, complete=False
+		)
 
-	orderItem, created = OrderItem.objects.get_or_create(order=order, product=product)
+	orderItem, created = OrderItem.objects.get_or_create(
+		order=order, product=product
+		)
 
 	if action == 'add':
 		orderItem.quantity = (orderItem.quantity + 1)
@@ -69,13 +67,16 @@ def updateItem(request):
 
 	return JsonResponse('Item was added', safe=False)
 
+
 def processOrder(request):
 	transaction_id = datetime.datetime.now().timestamp()
 	data = json.loads(request.body)
 
 	if request.user.is_authenticated:
 		customer = request.user.customer
-		order, created = Order.objects.get_or_create(customer=customer, complete=False)
+		order, created = Order.objects.get_or_create(
+			customer=customer, complete=False
+			)
 	else:
 		customer, order = guestOrder(request, data)
 
@@ -86,29 +87,29 @@ def processOrder(request):
 		order.complete = True
 	order.save()
 
-	#aggiungi id prodotto ai prodotti posseduti dal customer
+	# aggiungi id prodotto ai prodotti posseduti dal customer
 
-	if order.shipping == True:
+	if order.shipping is True:
 		ShippingAddress.objects.create(
-		customer=customer,
-		order=order,
-		address=data['shipping']['address'],
-		city=data['shipping']['city'],
-		state=data['shipping']['state'],
-		zipcode=data['shipping']['zipcode'],
-		)
+			customer=customer,
+			order=order,
+			address=data['shipping']['address'],
+			city=data['shipping']['city'],
+			state=data['shipping']['state'],
+			zipcode=data['shipping']['zipcode'],
+			)
 
 	return JsonResponse('Payment submitted..', safe=False)
 
 
-
-def productDetailView(request,pk):
+def productDetailView(request, pk):
 	data = cartData(request)
-
 	cartItems = data['cartItems']
 	order = data['order']
 	items = data['items']
 
-	object=Product.objects.filter(id=pk)
-	context={'object': object,'items':items, 'order':order, 'cartItems':cartItems}
+	object = Product.objects.filter(id=pk)
+	context = {
+		'object': object, 'items': items, 'order': order, 'cartItems': cartItems
+		}
 	return render(request, 'store/product.html', context)

@@ -13,9 +13,11 @@ def registrazione_view(request):
             username = form.cleaned_data["username"]
             email = form.cleaned_data["email"]
             password = form.cleaned_data["password1"]
-            User.objects.create_user(username=username, password=password, email=email)
+            User.objects.create_user(
+                username=username, password=password, email=email
+                )
             user = authenticate(username=username, password=password)
-            Customer.objects.create(user=user,name=username,email=email)
+            Customer.objects.create(user=user, name=username, email=email)
             login(request, user)
             return HttpResponseRedirect("/")
     else:

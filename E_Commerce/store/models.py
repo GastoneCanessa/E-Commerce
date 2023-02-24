@@ -3,8 +3,8 @@ from django.contrib.auth.models import User
 
 
 from django.urls import reverse
-
 # Create your models here.
+
 
 class Customer(models.Model):
 	user = models.OneToOneField(User, null=True, blank=True, on_delete=models.CASCADE)
@@ -17,9 +17,9 @@ class Customer(models.Model):
 
 class Product(models.Model):
 	name = models.CharField(max_length=200)
-	description = models.TextField(blank=True,null=True)
+	description = models.TextField(blank=True, null=True)
 	price = models.FloatField()
-	digital = models.BooleanField(default=False,null=True, blank=True)
+	digital = models.BooleanField(default=False, null=True, blank=True)
 	image = models.ImageField(null=True, blank=True)
 
 	def __str__(self):
@@ -32,12 +32,16 @@ class Product(models.Model):
 	def imageURL(self):
 		try:
 			url = self.image.url
+			
 		except:
 			url = ''
 		return url
 
+
 class Order(models.Model):
-	customer = models.ForeignKey(Customer, on_delete=models.SET_NULL, null=True, blank=True)
+	customer = models.ForeignKey(
+		Customer, on_delete=models.SET_NULL, null=True, blank=True
+		)
 	date_ordered = models.DateTimeField(auto_now_add=True)
 	complete = models.BooleanField(default=False)
 	transaction_id = models.CharField(max_length=100, null=True)
@@ -50,7 +54,7 @@ class Order(models.Model):
 		shipping = False
 		orderitems = self.orderitem_set.all()
 		for i in orderitems:
-			if i.product.digital == False:
+			if i.product.digital is False:
 				shipping = True
 		return shipping
 
@@ -66,6 +70,7 @@ class Order(models.Model):
 		total = sum([item.quantity for item in orderitems])
 		return total
 
+
 class OrderItem(models.Model):
 	product = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True)
 	order = models.ForeignKey(Order, on_delete=models.SET_NULL, null=True)
@@ -76,6 +81,7 @@ class OrderItem(models.Model):
 	def get_total(self):
 		total = self.product.price * self.quantity
 		return total
+
 
 class ShippingAddress(models.Model):
 	customer = models.ForeignKey(Customer, on_delete=models.SET_NULL, null=True)
